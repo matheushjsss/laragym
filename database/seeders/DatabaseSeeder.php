@@ -11,10 +11,15 @@ class DatabaseSeeder extends Seeder
      * Run the database seeds.
      *
      * @return void
-     */
-    public function run()
+     */    public function run()
     {
-        DB::statement("SET foreign_key_checks=0");
+        // Use PRAGMA for SQLite, otherwise use SET foreign_key_checks
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            DB::statement("PRAGMA foreign_keys = OFF");
+        } else {
+            DB::statement("SET foreign_key_checks=0");
+        }
+        
         Model::unguard();
 
         $this->call(UserSeeder::class);
@@ -24,6 +29,12 @@ class DatabaseSeeder extends Seeder
         $this->call(PackageSeeder::class);
 
         Model::reguard();
-        DB::statement("SET foreign_key_checks=1");
+        
+        // Re-enable foreign key checks
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            DB::statement("PRAGMA foreign_keys = ON");
+        } else {
+            DB::statement("SET foreign_key_checks=1");
+        }
     }
 }
